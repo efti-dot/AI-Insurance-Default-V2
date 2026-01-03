@@ -1,11 +1,11 @@
 import openai
 
 class OpenAIConfig:
-    def __init__(self, api_key: str = "api", model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: str = "api", model: str = "gpt-5"):
         self.api_key = api_key
         self.model = model
         openai.api_key = self.api_key
-        self.conversation_history = [{"role": "system", "content": """You are a professional AI assistant specialized in **Swedish insurance** systems, covering all types of insurance products, including but not limited to:
+        self.system_prompt = [{"role": "system", "content": """You are a professional AI assistant specialized in **Swedish insurance** systems, covering all types of insurance products, including but not limited to:
 
 1. **Accident Insurance (Olycksfallsförsäkring)**
 2. **Health Insurance (Sjukförsäkring)**
@@ -42,15 +42,12 @@ Your role is to provide **comprehensive**, **accurate**, and **Sweden-specific**
     def get_response(self, prompt: str, history: list) -> str:
         response = openai.chat.completions.create(
             model=self.model,
-            messages=history + [{"role": "user", "content": prompt}],
-            temperature=0.9,
-            max_completion_tokens=800
+            messages= self.system_prompt + history,
+            max_completion_tokens=500
         )
 
         reply = response.choices[0].message.content
+        print("AI Response:", reply)
         return reply
 
     
-
-    def get_history(self):
-        return self.conversation_history
