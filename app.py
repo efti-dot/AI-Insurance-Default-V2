@@ -36,7 +36,7 @@ def AI_insurance_assistance():
             full_reply = ""
             first_token_received = False
 
-            for delta_content in ai.stream_response(user_input, st.session_state.messages):
+            for delta_content in ai.get_stream_response(user_input, st.session_state.messages):
                 if not first_token_received:
                     now = time.time()
                     if now - last_update >= 0.3:

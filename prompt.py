@@ -18,7 +18,7 @@ Response principles you must strictly follow:
 """
         }]
 
-    def stream_response(self, prompt: str, history: list):
+    def get_stream_response(self, prompt: str, history: list):
         """
         Generator that yields streamed tokens from OpenAI.
         """
