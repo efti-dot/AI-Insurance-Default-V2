@@ -4,6 +4,7 @@ from PIL import Image
 from openai import OpenAI
 from docx import Document
 from pptx import Presentation
+import fitz
 
 
 class DocAI:
@@ -95,4 +96,24 @@ class DocAI:
 
         return "\n\n".join(content_parts) if content_parts else "No content found"
 
+    def text_pdf_from_bytes(self, name: str, file_bytes: bytes) -> str:
+        doc = fitz.open(stream=file_bytes, filetype="pdf")
+        out: List[str] = []
+        for i, pg in enumerate(doc):
+            # Render page as image
+            pix = pg.get_pixmap(matrix=fitz.Matrix(2, 2))
+            png_bytes = pix.tobytes("png")
+            b64 = base64.b64encode(png_bytes).decode()
 
+            r = self.client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": f"Extract all content (text and images) from page {i+1} of {name}"},
+                        {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64}"}}
+                    ]
+                }]
+            )
+            out.append(f"PAGE {i+1}:\n{r.choices[0].message.content}")
+        return "\n\n".join(out)
