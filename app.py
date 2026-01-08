@@ -77,6 +77,7 @@ def premium():
             st.markdown(message["content"])
 
     user_input = st.chat_input("Ask anything...")
+    attached_file = st.file_uploader("Attach a file to this message", type=["pdf","docx","pptx","ppt","png","jpg","jpeg"])
     if user_input:
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
