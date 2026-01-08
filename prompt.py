@@ -33,3 +33,20 @@ Response principles you must strictly follow:
             delta = chunk.choices[0].delta
             if delta.content:
                 yield delta.content
+
+
+    def get_premium_response(self, prompt: str, history: list):
+        """
+        Generator that yields streamed tokens from OpenAI.
+        """
+        response_stream = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.system_prompt + history,
+            temperature=1,
+            stream=True
+        )
+
+        for chunk in response_stream:
+            delta = chunk.choices[0].delta
+            if delta.content:
+                yield delta.content

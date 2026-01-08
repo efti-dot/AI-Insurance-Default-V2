@@ -8,8 +8,15 @@ if not api_key:
 
 ai = OpenAIConfig(api_key=api_key)
 
-def AI_insurance_assistance():
-    st.title("AI Insurance Assistance")
+def naive_bar():
+    with st.sidebar:
+        st.title("Navigation")
+        page = st.selectbox("Select an option", ["General", "Premium",])
+    
+    return page
+
+def general():
+    st.title("AI Insurance Assistance (General)")
 
     if "messages" not in st.session_state:
         st.session_state.messages = []
@@ -59,5 +66,21 @@ def AI_insurance_assistance():
         st.session_state.messages.append({"role": "assistant", "content": full_reply})
 
 
+def premium():
+    st.title("AI Insurance Assistance (Premium)")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
+
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
+    user_input = st.chat_input("Ask anything...")
+
 if __name__ == "__main__":
-    AI_insurance_assistance()
+    page = naive_bar()
+    if page == "General":
+        general()
+    elif page == "Premium":
+        premium()
