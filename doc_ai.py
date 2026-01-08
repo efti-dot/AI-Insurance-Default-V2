@@ -5,6 +5,7 @@ from openai import OpenAI
 from docx import Document
 from pptx import Presentation
 import fitz
+from pathlib import Path
 
 
 class DocAI:
@@ -117,3 +118,32 @@ class DocAI:
             )
             out.append(f"PAGE {i+1}:\n{r.choices[0].message.content}")
         return "\n\n".join(out)
+    
+    def add_attachment(self, filename: str, content_type: str, file_bytes: bytes) -> str:
+        """
+        Process and add an attachment to KB. Returns a status message.
+        """
+        ext = Path(filename).suffix.lower()
+        print(f"Processing {filename}...")
+
+        if ext in [".png", ".jpg", ".jpeg"]:
+            desc = self.analyze_img_from_bytes(file_bytes, name=filename)
+            content = desc
+        elif ext == ".pdf":
+            content = self.text_pdf_from_bytes(filename, file_bytes)
+        elif ext == ".docx":
+            content = self.text_docx_from_bytes(filename, file_bytes)
+        elif ext in [".pptx", ".ppt"]:
+            content = self.text_pptx_from_bytes(filename, file_bytes)
+        else:
+            return f"Unsupported type: {ext or content_type}"
+
+        self.kb.append({"name": filename, "content": content})
+        return f"{filename} added (with images extracted)"
+
+    def build_context(self) -> Optional[str]:
+        if not self.kb:
+            return None
+        return "\n\n".join([f"=== {d['name']} ===\n{d['content']}" for d in self.kb])
+
+
