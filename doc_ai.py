@@ -3,6 +3,7 @@ from typing import List, Dict, Optional
 from PIL import Image
 from openai import OpenAI
 from docx import Document
+from pptx import Presentation
 
 
 class DocAI:
@@ -62,6 +63,35 @@ class DocAI:
                     content_parts.append(f"\nIMAGE {img_count} DESCRIPTION:\n{img_desc}")
                 except Exception as e:
                     print(f"Error processing image: {e}")
+
+        return "\n\n".join(content_parts) if content_parts else "No content found"
+
+    def text_pptx_from_bytes(self, name: str, file_bytes: bytes) -> str:
+        prs = Presentation(io.BytesIO(file_bytes))
+        content_parts: List[str] = []
+
+        for slide_num, slide in enumerate(prs.slides, 1):
+            # Text
+            slide_text = []
+            for shape in slide.shapes:
+                if hasattr(shape, "text") and shape.text.strip():
+                    slide_text.append(shape.text)
+            if slide_text:
+                content_parts.append(f"SLIDE {slide_num} TEXT:\n" + "\n".join(slide_text))
+
+            # Images
+            for shape in slide.shapes:
+                if hasattr(shape, "image"):
+                    try:
+                        img_bytes = shape.image.blob
+                        img_desc = self.analyze_img_from_bytes(
+                            img_bytes,
+                            name,
+                            f"Image from slide {slide_num}"
+                        )
+                        content_parts.append(f"SLIDE {slide_num} IMAGE:\n{img_desc}")
+                    except Exception as e:
+                        print(f"Error processing image from slide {slide_num}: {e}")
 
         return "\n\n".join(content_parts) if content_parts else "No content found"
 
