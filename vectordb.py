@@ -22,9 +22,18 @@ class VectorStore:
         self.save()
 
     def search(self, query_vector: list, top_k=3):
+        if len(self.metadata) == 0 or self.index.ntotal == 0:
+            return []
+
         query = np.array([query_vector]).astype("float32")
         distances, indices = self.index.search(query, top_k)
-        return [self.metadata[i] for i in indices[0]]
+
+        results = []
+        for i in indices[0]:
+            if i != -1 and i < len(self.metadata):
+                results.append(self.metadata[i])
+        return results
+
 
     def save(self):
         faiss.write_index(self.index, self.index_path)

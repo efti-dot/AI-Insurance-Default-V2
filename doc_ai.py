@@ -8,6 +8,7 @@ import fitz
 from pathlib import Path
 
 
+
 class DocAI:
     def __init__(self, client: OpenAI):
         self.client = client
@@ -138,8 +139,7 @@ class DocAI:
         else:
             return f"Unsupported type: {ext or content_type}"
 
-        self.kb.append({"name": filename, "content": content})
-        return f"{filename} added (with images extracted)"
+        return content
 
     def build_context(self) -> Optional[str]:
         if not self.kb:
