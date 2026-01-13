@@ -1,3 +1,4 @@
+import uuid
 import streamlit as st
 import time
 from prompt import OpenAIConfig
@@ -6,7 +7,10 @@ api_key = st.secrets.get("OPENAI_API_KEY")
 if not api_key:
     st.error("Please check the OPENAI_API_KEY.")
 
-ai = OpenAIConfig(api_key=api_key)
+current_user_id = st.secrets.get("USER_ID", "default_user")
+current_case_id = st.secrets.get("CASE_ID", str(uuid.uuid4()))
+session_id = str(uuid.uuid4())
+ai = OpenAIConfig(api_key=api_key, user_id=current_user_id, case_id=current_case_id)
 
 def naive_bar():
     with st.sidebar:

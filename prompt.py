@@ -5,12 +5,14 @@ from vectordb import VectorStore
 
 
 class OpenAIConfig:
-    def __init__(self, api_key: str = "api", model: str = "gpt-5"):
+    def __init__(self, api_key: str = "api", model: str = "gpt-5", user_id: str = "default_user", case_id: str = "default_case"):
         self.api_key = api_key
         self.model = model
         self.client = OpenAI(api_key=self.api_key)
         self.docai = DocAI(self.client)
-        self.vstore = VectorStore(dim=3072)
+        index_path = f"db/{user_id}_{case_id}_index.faiss"
+        meta_path = f"db/{user_id}_{case_id}_meta.pkl"
+        self.vstore = VectorStore(dim=3072, index_path=index_path, meta_path=meta_path)
         self.system_prompt = [{
             "role": "system",
             "content": """You are a professional AI assistant specialized in Swedish insurance systems, including private and public insurance products such as health, home, vehicle, travel, accident, life, unemployment, and pension insurance.
