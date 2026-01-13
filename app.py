@@ -24,19 +24,16 @@ def general():
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
-    # Render history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
     user_input = st.chat_input("Ask anything...")
     if user_input:
-        # Persist user message
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Assistant streaming with thinking indicator
         with st.chat_message("assistant"):
             thinking_placeholder = st.empty()
             reply_placeholder = st.empty()
@@ -69,7 +66,6 @@ def general():
                 thinking_placeholder.empty()
             reply_placeholder.markdown(full_reply)
 
-        # Persist assistant reply
         st.session_state.messages.append({"role": "assistant", "content": full_reply})
 
 def premium():
@@ -80,30 +76,24 @@ def premium():
     if "last_uploaded_name" not in st.session_state:
         st.session_state.last_uploaded_name = None
 
-    # Render history
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
 
-    # Attachment input (optional per message)
     attached_file = st.file_uploader(
         "Attach a file to this message",
         type=["pdf", "docx", "pptx", "ppt", "png", "jpg", "jpeg"]
     )
 
-    # If a file is loaded, process it immediately when user submits a question
     user_input = st.chat_input("Ask anything (documents improve answers)...")
     processing_status_placeholder = st.empty()
 
     if user_input:
-        # Save & show user message
         st.session_state.messages.append({"role": "user", "content": user_input})
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Process attachment (if provided)
         if attached_file is not None:
-            # Prevent re-processing the same attachment name back-to-back
             if st.session_state.last_uploaded_name != attached_file.name:
                 status_msg = ai.add_attachment(attached_file)
                 st.session_state.last_uploaded_name = attached_file.name
@@ -111,7 +101,6 @@ def premium():
                 status_msg = f"✓ {attached_file.name} already added"
             processing_status_placeholder.info(status_msg)
 
-        # Assistant streaming with KB context and thinking indicator
         with st.chat_message("assistant"):
             thinking_placeholder = st.empty()
             reply_placeholder = st.empty()
@@ -144,7 +133,6 @@ def premium():
                 thinking_placeholder.empty()
             reply_placeholder.markdown(full_reply)
 
-        # Persist assistant reply
         st.session_state.messages.append({"role": "assistant", "content": full_reply})
 
 if __name__ == "__main__":
