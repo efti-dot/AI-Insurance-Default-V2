@@ -1,4 +1,3 @@
-# prompt.py
 from openai import OpenAI
 from doc_ai import DocAI
 from vectordb import VectorStore
@@ -43,31 +42,26 @@ Response principles you must strictly follow:
         filename = uploaded_file.name
         content_type = uploaded_file.type or ""
 
-        # Extract content using DocAI
         content = self.docai.add_attachment(filename, content_type, file_bytes)
 
-        # Generate embedding
         embedding = self.client.embeddings.create(
             model="text-embedding-3-large",
             input=content
         )
         vector = embedding.data[0].embedding
 
-        # Store in vector DB
         self.vstore.add([vector], [f"{filename}: {content}"])
 
         return f"{filename} processed and stored in vector DB"
 
 
     def get_premium_stream_response(self, prompt, history):
-        # Embed the user query
         embedding = self.client.embeddings.create(
             model="text-embedding-3-large",
             input=prompt
         )
         query_vector = embedding.data[0].embedding
 
-        # Search vector DB
         top_contexts = self.vstore.search(query_vector, top_k=3)
 
         messages = list(self.system_prompt)
