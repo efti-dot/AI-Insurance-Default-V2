@@ -2,6 +2,9 @@ import uuid
 import streamlit as st
 import time
 from prompt import OpenAIConfig
+import av
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
+
 
 api_key = st.secrets.get("OPENAI_API_KEY")
 if not api_key:
