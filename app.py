@@ -2,8 +2,6 @@ import uuid
 import streamlit as st
 import time
 from prompt import OpenAIConfig
-import av
-from streamlit_webrtc import webrtc_streamer, AudioProcessorBase
 
 
 api_key = st.secrets.get("OPENAI_API_KEY")
@@ -49,7 +47,7 @@ def general():
             full_reply = ""
             first_token_received = False
 
-            for delta_content in ai.get_stream_response(user_input, st.session_state.messages):
+            for delta_content in ai.get_stream_response(st.session_state.messages):
                 if not first_token_received:
                     now = time.time()
                     if now - last_update >= 0.3:
@@ -70,6 +68,7 @@ def general():
             reply_placeholder.markdown(full_reply)
 
         st.session_state.messages.append({"role": "assistant", "content": full_reply})
+        ai.update_summary(st.session_state.messages)
 
 def premium():
     st.title("AI Insurance Assistance (Premium)")

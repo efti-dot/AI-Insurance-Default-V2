@@ -4,7 +4,7 @@ from vectordb import VectorStore
 
 
 class OpenAIConfig:
-    def __init__(self, api_key: str = "api", model: str = "gpt-5", user_id: str = "default_user", case_id: str = "default_case"):
+    def __init__(self, api_key: str = "api", model: str = "gpt-5-mini", user_id: str = "default_user", case_id: str = "default_case"):
         self.api_key = api_key
         self.model = model
         self.client = OpenAI(api_key=self.api_key)
@@ -24,11 +24,43 @@ Response principles you must strictly follow:
 4) Use a natural, human, and conversational tone. Avoid sounding robotic, academic, or like an AI system.
             """
         }]
+        self.summary = ""
 
-    def get_stream_response(self, prompt, history):
+    def update_summary(self, history):
+        if len(history) < 6:
+            return
+
+        convo = "\n".join([f"{m['role']}: {m['content']}" for m in history[-6:]])
+
+        r = self.client.chat.completions.create(
+            model=self.model,
+            messages=[
+                {"role": "system", "content": "Summarize the conversation briefly for memory."},
+                {"role": "user", "content": convo}
+            ],
+            max_completion_tokens=120,
+            temperature=1
+        )
+
+        self.summary += "\n" + r.choices[0].message.content
+
+
+    def get_stream_response(self, history):
+        short_history = history[-6:]
+
+        messages = list(self.system_prompt)
+
+        if self.summary:
+            messages.append({
+                "role": "system",
+                "content": f"Conversation memory:\n{self.summary}"
+            })
+
+        messages += short_history
+        
         response_stream = self.client.chat.completions.create(
             model=self.model,
-            messages=self.system_prompt + history + [{"role": "user", "content": prompt}],
+            messages=messages,
             temperature=1,
             stream=True
         )
