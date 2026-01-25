@@ -11,7 +11,10 @@ if not api_key:
 current_user_id = st.secrets.get("USER_ID", "default_user")
 current_case_id = st.secrets.get("CASE_ID", str(uuid.uuid4()))
 session_id = str(uuid.uuid4())
-ai = OpenAIConfig(api_key=api_key, user_id=current_user_id, case_id=current_case_id)
+
+if "ai" not in st.session_state:
+    st.session_state.ai = OpenAIConfig(api_key=api_key, user_id=current_user_id, case_id=current_case_id)
+ai = st.session_state.ai
 
 def naive_bar():
     with st.sidebar:
@@ -136,6 +139,7 @@ def premium():
             reply_placeholder.markdown(full_reply)
 
         st.session_state.messages.append({"role": "assistant", "content": full_reply})
+        ai.update_summary(st.session_state.messages)
 
 if __name__ == "__main__":
     page = naive_bar()

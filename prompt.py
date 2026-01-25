@@ -4,7 +4,7 @@ from vectordb import VectorStore
 
 
 class OpenAIConfig:
-    def __init__(self, api_key: str = "api", model: str = "gpt-5-mini", user_id: str = "default_user", case_id: str = "default_case"):
+    def __init__(self, api_key: str = "api", model: str = "gpt-5", user_id: str = "default_user", case_id: str = "default_case"):
         self.api_key = api_key
         self.model = model
         self.client = OpenAI(api_key=self.api_key)
@@ -32,17 +32,27 @@ Response principles you must strictly follow:
 
         convo = "\n".join([f"{m['role']}: {m['content']}" for m in history[-6:]])
 
-        r = self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": "Summarize the conversation briefly for memory."},
-                {"role": "user", "content": convo}
-            ],
-            max_completion_tokens=120,
-            temperature=1
-        )
+        try:
+            r = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "Summarize the conversation for memory."},
+                    {"role": "user", "content": convo}
+                ],
+                max_completion_tokens=500,
+                temperature=1
+            )
 
-        self.summary += "\n" + r.choices[0].message.content
+            content = r.choices[0].message.content
+            
+            if content:
+                self.summary += "\n" + content
+                print("Updated summary:", self.summary)
+            else:
+                print("Summary content was empty")
+        except Exception as e:
+            print(f"Error in update_summary: {e}")
+
 
 
     def get_stream_response(self, history):
@@ -95,15 +105,24 @@ Response principles you must strictly follow:
         query_vector = embedding.data[0].embedding
 
         top_contexts = self.vstore.search(query_vector, top_k=3)
+        
+        short_history = history[-6:]
 
         messages = list(self.system_prompt)
+        
+        if self.summary:
+            messages.append({
+                "role": "system",
+                "content": f"Conversation memory:\n{self.summary}"
+            })
+        
         if top_contexts:
             context_text = "\n\n".join(top_contexts)
             messages.append({
-                "role": "user",
+                "role": "system",
                 "content": f"Relevant document context:\n{context_text}"
             })
-        messages += history + [{"role": "user", "content": prompt}]
+        messages += short_history + [{"role": "user", "content": prompt}]
 
 
         response_stream = self.client.chat.completions.create(
